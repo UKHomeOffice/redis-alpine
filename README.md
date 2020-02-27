@@ -18,4 +18,3 @@
    * `docker push quay.io/ukhomeofficedigital/redis-alpine`
 
 > This container should then be available for use as the base image
-
