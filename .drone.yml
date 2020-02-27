@@ -9,5 +9,6 @@ pipeline:
     tags:
       - ${DRONE_COMMIT_SHA}
       - ${DRONE_BUILD_NUMBER}
+      - latest
     when:
       event: push
