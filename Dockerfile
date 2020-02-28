@@ -3,5 +3,5 @@ LABEL maintainer="hemantkumar.goswami@homeoffice.gsi.gov.uk"
 
 ENV DOCKER_HOME /app/redis
 
-RUN mkdir $DOCKER_HOME
+RUN mkdir -p $DOCKER_HOME
 WORKDIR $DOCKER_HOME
