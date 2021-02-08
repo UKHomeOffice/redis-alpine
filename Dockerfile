@@ -1,2 +1,2 @@
-FROM redis:4-alpine
-LABEL maintainer="hemantkumar.goswami@homeoffice.gsi.gov.uk"
+FROM redis:5-alpine
+LABEL maintainer="Max.morris@digital.homeoffice.gov.uk"
