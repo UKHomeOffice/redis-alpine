@@ -1,2 +1,2 @@
-FROM redis:5-alpine
+FROM redis:5-alpine3.14
 LABEL maintainer="Max.morris@digital.homeoffice.gov.uk"
