@@ -1,4 +1,4 @@
-# Redis Alpine 4 Latest
+# Redis Alpine 5 Latest
 > Base image used for spinning redis based apps images/containers
 
 ## Installing & getting started
