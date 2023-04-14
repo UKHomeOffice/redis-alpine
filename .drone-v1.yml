@@ -17,7 +17,7 @@ steps:
     password:
       from_secret: docker_password
     dockerfile: Dockerfile
-    repo: quay.io/ukhomeofficedigital/redis-alpine2
+    repo: quay.io/ukhomeofficedigital/redis-alpine
     registry: quay.io
     force_tag: true
     tags:
@@ -35,7 +35,7 @@ steps:
   pull: if-not-exists
   image: quay.io/ukhomeofficedigital/trivyscanner:b82
   commands:
-  - trivy --ignore-unfixed --exit-code 1 --no-progress quay.io/ukhomeofficedigital/redis-alpine2:${DRONE_COMMIT_SHA}
+  - trivy --ignore-unfixed --exit-code 1 --no-progress quay.io/ukhomeofficedigital/redis-alpine:${DRONE_COMMIT_SHA}
   when:
     branch:
       exclude:
