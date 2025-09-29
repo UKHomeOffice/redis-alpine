@@ -28,6 +28,10 @@ steps:
       from_secret: docker_password
     DOCKER_USERNAME:
       from_secret: docker_username
+  
+  volumes:
+    - name: dockersock
+      path: /var/run/docker.sock    
   when:
     branch:
       exclude:
@@ -67,7 +71,3 @@ steps:
     - master
     event:
     - push
-
-services:
-- name: docker
-  image: *acp-docker-image
