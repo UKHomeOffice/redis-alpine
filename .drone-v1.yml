@@ -39,7 +39,7 @@ steps:
   pull: if-not-exists
   image: *trivy-image
   commands:
-    - trivy image --ignore-unfixed --exit-code 0 --no-progress quay.io/ukhomeofficedigital/redis-alpine:${DRONE_BUILD_NUMBER}
+    - trivy image --ignore-unfixed --exit-code 0 --no-progress quay.io/ukhomeofficedigital/redis-alpine:dev-${DRONE_BUILD_NUMBER}
   when:
     branch:
       exclude:
