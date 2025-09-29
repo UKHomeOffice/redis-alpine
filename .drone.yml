@@ -1,6 +1,5 @@
 ---
 global-variables:
-  acp-docker-image: &acp-docker-image 340268328991.dkr.ecr.eu-west-2.amazonaws.com/acp/dind:latest
   trivy-image: &trivy-image quay.io/ukhomeofficedigital/trivyscanner:master
 
 kind: pipeline
@@ -14,7 +13,7 @@ platform:
 steps:
 - name: build
   pull: if-not-exists
-  image: *acp-docker-image #plugins/docker
+  image: plugins/docker
   settings:
     dockerfile: Dockerfile
     force_tag: true
