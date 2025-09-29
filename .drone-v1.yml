@@ -14,7 +14,7 @@ platform:
 steps:
 - name: build
   pull: if-not-exists
-  image: *acp-docker-image
+  image: plugins/docker
   settings:
     dockerfile: Dockerfile
     force_tag: true
@@ -49,7 +49,7 @@ steps:
 
 - name: build-master
   pull: if-not-exists
-  image: *acp-docker-image
+  image: plugins/docker
   settings:
     dockerfile: Dockerfile
     force_tag: true
