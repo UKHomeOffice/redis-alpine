@@ -28,9 +28,6 @@ steps:
       from_secret: docker_password
     DOCKER_USERNAME:
       from_secret: docker_username
-  volumes:
-    - name: dockersock
-      path: /var/run/docker.sock    
   when:
     branch:
       exclude:
