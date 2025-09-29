@@ -14,7 +14,7 @@ platform:
 steps:
 - name: build
   pull: if-not-exists
-  image: plugins/docker
+  image: *acp-docker-image #plugins/docker
   settings:
     dockerfile: Dockerfile
     force_tag: true
@@ -28,7 +28,6 @@ steps:
       from_secret: docker_password
     DOCKER_USERNAME:
       from_secret: docker_username
-  
   volumes:
     - name: dockersock
       path: /var/run/docker.sock    
