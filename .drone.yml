@@ -1,14 +1,68 @@
-pipeline:
+---
+global-variables:
+  trivy-image: &trivy-image quay.io/ukhomeofficedigital/trivyscanner:master
 
-  build:
-    image: ukhomeoffice/drone-docker
-    repo: quay.io/ukhomeofficedigital/redis-alpine
-    secrets: [ docker_username, docker_password ]
-    registry: quay.io
+kind: pipeline
+name: default
+type: kubernetes
+
+platform:
+  os: linux
+  arch: amd64
+
+steps:
+- name: build
+  pull: if-not-exists
+  image: plugins/docker
+  settings:
+    dockerfile: Dockerfile
     force_tag: true
+    registry: quay.io
+    repo: quay.io/ukhomeofficedigital/redis-alpine
     tags:
-      - ${DRONE_COMMIT_SHA}
-      - ${DRONE_BUILD_NUMBER}
-      - latest
-    when:
-      event: push
+    - ${DRONE_COMMIT_SHA}
+    - dev-${DRONE_BUILD_NUMBER}
+  environment:
+    DOCKER_PASSWORD:
+      from_secret: docker_password
+    DOCKER_USERNAME:
+      from_secret: docker_username
+  when:
+    branch:
+      exclude:
+      - master
+    event:
+    - push
+
+- name: trivy_scan
+  pull: if-not-exists
+  image: *trivy-image
+  commands:
+    - trivy image --ignore-unfixed --exit-code 0 --no-progress quay.io/ukhomeofficedigital/redis-alpine:dev-${DRONE_BUILD_NUMBER}
+  when:
+    branch:
+      exclude:
+        - master
+    event:
+      - push
+
+- name: build-master
+  pull: if-not-exists
+  image: plugins/docker
+  settings:
+    dockerfile: Dockerfile
+    force_tag: true
+    registry: quay.io
+    repo: quay.io/ukhomeofficedigital/redis-alpine
+    tags:
+    - b${DRONE_BUILD_NUMBER}
+  environment:
+    DOCKER_PASSWORD:
+      from_secret: docker_password
+    DOCKER_USERNAME:
+      from_secret: docker_username
+  when:
+    branch:
+    - master
+    event:
+    - push
