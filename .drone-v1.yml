@@ -1,4 +1,8 @@
 ---
+global-variables:
+  acp-docker-image: &acp-docker-image 340268328991.dkr.ecr.eu-west-2.amazonaws.com/acp/dind:latest
+  trivy-image: &trivy-image quay.io/ukhomeofficedigital/trivyscanner:master
+
 kind: pipeline
 name: default
 type: kubernetes
@@ -8,37 +12,100 @@ platform:
   arch: amd64
 
 steps:
-- name: build
+- name: build_docker_image
   pull: if-not-exists
-  image: plugins/docker
-  settings:
-    username:
+  image: *acp-docker-image
+  commands:
+    - /usr/local/bin/wait
+    - docker build --tag redis-alpine:$${DRONE_BUILD_NUMBER} .
+  when:
+    event:
+      - push
+
+- name: push_image_to_quay
+  pull: if-not-exists
+  image: *acp-docker-image
+  commands:
+    - docker login --username=$${DOCKER_USERNAME} --password=$${DOCKER_PASSWORD} quay.io
+    - docker tag redis-alpine:$${DRONE_BUILD_NUMBER} quay.io/ukhomeofficedigital/redis-alpine:$${DRONE_BUILD_NUMBER}
+    - docker push quay.io/ukhomeofficedigital/redis-alpine:$${DRONE_BUILD_NUMBER}
+  environment:
+    DOCKER_USERNAME:
       from_secret: docker_username
-    password:
+    DOCKER_PASSWORD:
       from_secret: docker_password
-    dockerfile: Dockerfile
-    repo: quay.io/ukhomeofficedigital/redis-alpine
-    registry: quay.io
-    force_tag: true
-    tags:
-      - ${DRONE_COMMIT_SHA}
-      - ${DRONE_BUILD_NUMBER}
-      - latest
-    when:
-      branch:
-        exclude:
+  when:
+    branch:
+      exclude:
         - master
-      event:
+    event:
       - push
 
 - name: trivy_scan
   pull: if-not-exists
-  image: quay.io/ukhomeofficedigital/trivyscanner:b82
+  image: *trivy-image
   commands:
-  - trivy --ignore-unfixed --exit-code 1 --no-progress quay.io/ukhomeofficedigital/redis-alpine:${DRONE_COMMIT_SHA}
+    - trivy image --ignore-unfixed --exit-code 0 --no-progress quay.io/ukhomeofficedigital/redis-alpine:${DRONE_BUILD_NUMBER}
   when:
     branch:
       exclude:
+        - master
+    event:
+      - push
+
+
+- name: push_master_image_to_quay
+  pull: if-not-exists
+  image: *acp-docker-image
+  commands:
+    - docker login --username=$${DOCKER_USERNAME} --password=$${DOCKER_PASSWORD} quay.io
+    - docker tag redis-alpine:$${DRONE_BUILD_NUMBER} quay.io/ukhomeofficedigital/redis-alpine:$${DRONE_BUILD_NUMBER}
+    - docker push quay.io/ukhomeofficedigital/redis-alpine:$${DRONE_BUILD_NUMBER}
+  environment:
+    DOCKER_USERNAME:
+      from_secret: docker_username
+    DOCKER_PASSWORD:
+      from_secret: docker_password
+  when:
+    branch:
       - master
     event:
-    - push
+      - push
+
+- name: trivy_scan_master
+  pull: if-not-exists
+  image: *trivy-image
+  commands:
+  - trivy image --ignore-unfixed --exit-code 0 --no-progress quay.io/ukhomeofficedigital/redis-alpine:${DRONE_BUILD_NUMBER}
+  when:
+    branch:
+      - master
+    event:
+      - push
+
+
+- name: promote_master
+  pull: if-not-exists
+  image: *acp-docker-image
+  commands:
+    - /usr/local/bin/wait
+    - docker login --username=$${DOCKER_USERNAME} --password=$${DOCKER_PASSWORD} quay.io
+    - docker pull quay.io/ukhomeofficedigital/redis-alpine:$${DRONE_BUILD_PARENT}
+    - docker tag quay.io/ukhomeofficedigital/redis-alpine:$${DRONE_BUILD_PARENT} quay.io/ukhomeofficedigital/dq-packer-ansible:latest
+    - docker push quay.io/ukhomeofficedigital/dq-packer-ansible:latest
+  environment:
+    DOCKER_PASSWORD:
+      from_secret: docker_password
+    DOCKER_USERNAME:
+      from_secret: docker_username
+  when:
+    branch:
+      - master
+    event:
+      - promote
+    target:
+      - production
+
+services:
+- name: docker
+  image: *acp-docker-image
